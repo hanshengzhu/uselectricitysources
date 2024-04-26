@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>US Electricity Sources Interactive Map</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<link rel="stylesheet" href="style.css">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js"></script>
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-compare/v0.4.0/mapbox-gl-compare.js"></script>
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-compare/v0.4.0/mapbox-gl-compare.css" type="text/css">
+
+<style>
+    body { margin: 0; padding: 0; height:100%}
+
+    #title { 
+        position: absolute; 
+        top: 0%;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 100;
+        text-align: center;
+        color: white; 
+        background-color: grey;
+        font: 350% 'Impact', Helvetica;
+    }
+    
+    
+    .toggle-container {
+    position:absolute;
+    top: 0%;
+    right:0%;
+    display: flex;
+    flex-direction: column; 
+    align-items: flex-start; /* Align items to the start of the flex-direction */
+    padding: 10px; /* Add some padding around the container */
+    }   
+    .toggle-option {
+    margin-right: 10px;
+    }
+    
+    .toggle-option label {
+    display: block;
+    padding: 2px 5px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 5px; 
+    cursor: pointer;
+    }
+
+    .toggle-option input[type="checkbox"] {
+    margin-right: 5px;
+    }
+
+
+
+
+    #map { 
+        position: absolute; 
+        top: 0%; 
+        bottom: 10%; 
+        width: 100%; 
+        z-index:-1;
+    }
+
+    .mapboxgl-popup {
+        max-width: 400px;
+        font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    }
+    #popup{
+        width:100%;
+        position: absolute; 
+        top: 0; 
+        bottom: 0;        
+        left:100%;
+        z-index:1;
+        border:1px solid black;
+    }
+
+    .map {
+        position: absolute;
+        top: 10;
+        bottom: 0;
+        width: 100%;
+    }
+    
+
+</style>
+</head>
+<body>
+
+
+
+<style>
+    
+    #title1{ 
+            position: absolute; 
+            top: 2%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            text-align: center;
+            color: white; 
+            background-color: grey;
+            font: 350% 'Impact', Arial;
+        }
+    
+    
+    
+    .mapboxgl-popup {
+        max-width: 400px;
+        font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    }
+    #popup{
+        width:100%;
+        position: absolute; top: 0; bottom: 0;        
+        left:100%;
+        z-index:1;
+        border:1px solid black;
+    }
+    #map1{
+        z-index:-1;
+        position: absolute; top: 0; bottom: 0;        
+        width:100%;
+    }
+
+
+    .switch-container {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .switch {
+        margin-right: 10px;
+    }
+
+
+    body {
+    /* overflow: hidden; */
+    }
+ 
+    body * {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    } 
+    
+    #title2{ 
+            position: absolute; 
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 101;
+            text-align: center;
+            color: white; 
+            background-color: grey;
+            font: 350% 'Impact', Arial;
+        }
+   
+   
+    .map2 {
+    position: absolute;
+    top: 100;
+    bottom: 0;
+    width: 100%;
+    }
+    .mapboxgl-compare .compare-swiper-vertical {
+	background-color: black;
+    }
+    .mapboxgl-compare {
+    background-color: black;
+    }
+
+#layers{
+    z-index:10;
+}
+#comparison-container{
+    position:absolute;
+    top:800px;
+    height:600px;
+    width:100%;
+}
+#before{
+    height:600px;
+    width:100%;
+}
+    
+#after{
+    height:600px;
+    width:100%;
+}
+     
+</style>
+<div id="title1">How the US generates electricity</div>
+<div id="title2">US electricity capacity 2014-2024</div>
+<div id="map"></div>
+
+
+<div class="toggle-container">
+    <div class="toggle-option">
+        <input type="checkbox" id="solar-toggle" class="toggle-input" value="solar">
+        <label for="solar-toggle">Solar</label>
+    </div>
+    <div class="toggle-option">
+        <input type="checkbox" id="pumped-storage-toggle" class="toggle-input" value="pumpedstorage">
+        <label for="pumped-storage-toggle">Pumped Storage</label>
+    </div>
+    <div class="toggle-option">
+        <input type="checkbox" id="natural-gas-toggle" class="toggle-input" value="naturalgas">
+        <label for="natural-gas-toggle">Natural Gas</label>
+    </div>
+    <div class="toggle-option">
+        <input type="checkbox" id="nuclear-toggle" class="toggle-input" value="nuclear">
+        <label for="nuclear-toggle">Nuclear</label>
+    </div>
+    <div class="toggle-option">
+        <input type="checkbox" id="geothermal-toggle" class="toggle-input" value="geothermal">
+        <label for="geothermal-toggle">Geothermal</label>
+    </div>
+    <div class="toggle-option">
+        <input type="checkbox" id="wind-toggle" class="toggle-input" value="wind">
+        <label for="wind-toggle">Wind</label>
+    </div>
+    <div class="toggle-option">
+        <input type="checkbox" id="batteries-toggle" class="toggle-input" value="batteries">
+        <label for="batteries-toggle">Batteries</label>
+    </div>
+    <div class="toggle-option">
+        <input type="checkbox" id="hydroelectric-toggle" class="toggle-input" value="hydroelectric">
+        <label for="hydroelectric-toggle">Hydroelectric</label>
+    </div>
+    <div class="toggle-option">
+        <input type="checkbox" id="petroleum-toggle" class="toggle-input" value="petroleum">
+        <label for="petroleum-toggle">Petroleum</label>
+    </div>
+    <div class="toggle-option">
+        <input type="checkbox" id="other-toggle" class="toggle-input" value="other">
+        <label for="other-toggle">Other</label>
+    </div>
+    <div class="toggle-option">
+        <input type="checkbox" id="coal-toggle" class="toggle-input" value="coal">
+        <label for="coal-toggle">Coal</label>
+    </div>
+    <div class="toggle-option">
+        <input type="checkbox" id="biomass" class="toggle-input" value="biomass">
+        <label for="biomass-toggle">Biomass</label>
+    </div>
+
+
+</div>
+<div id="popup"></div>
+<div id="comparison-container">
+    <div id="before" class="map2"></div>
+    <div id="after" class="map2"></div>  
+    </div>
+<script>
+
+    mapboxgl.accessToken = 'pk.eyJ1IjoiaGFuc2hlbmciLCJhIjoiY2xzZ29tbXoxMHcxdjJpcGdxa2p4emIxZSJ9.pvlJ4cj5fWtZm_HVo9B9lw';
+    const beforeMap = new mapboxgl.Map({
+    container: 'before',
+    // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
+    style: 'mapbox://styles/hansheng/clutc2w9g009v01qt7qy475d2',
+    center: [-99.107,38.726],//put your map center coorinates inside square brackets as an array, in [lng,lat] format
+    zoom: 4,//put zoom here as a number, ranges betwen 1 and 22
+    minZoom:3.5
+    });
+     
+    const afterMap = new mapboxgl.Map({
+    container: 'after',
+    style: 'mapbox://styles/hansheng/cluhqidt0014e01ql4jkr3zhq',
+    center: [-99.107,38.726],//put your map center coorinates inside square brackets as an array, in [lng,lat] format
+    zoom: 4,//put zoom here as a number, ranges betwen 1 and 22
+    minZoom:3.5
+});
+     
+    // A selector or reference to HTML element
+    const container = '#comparison-container';
+     
+    const compareMap = new mapboxgl.Compare(beforeMap, afterMap, container, {
+    // Set this to enable comparing two maps by mouse movement:
+    // mousemove: true
+    });
+    
+    
+    
+    </script>
+<script>
+     
+ 
+
+    mapboxgl.accessToken = 'pk.eyJ1IjoiaGFuc2hlbmciLCJhIjoiY2xzZ29tbXoxMHcxdjJpcGdxa2p4emIxZSJ9.pvlJ4cj5fWtZm_HVo9B9lw';
+    var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/hansheng/cluhqidt0014e01ql4jkr3zhq',
+        center: [-99.107, 38.726], // Centered on the US
+        zoom: 4, // Initial zoom level
+        minZoom:3.5
+
+    });
+
+    
+
+    map.on('load', () => {
+    map.on('click', 'uspowerplants', (e) => {
+        const clickedOnFeature = e.features[0]
+        const coordinates = clickedOnFeature.geometry.coordinates.slice();
+
+        console.log(e.features[0].properties)
+        var address = e.features[0].properties.Street_Add
+        var city =  e.features[0].properties.City
+        var state = e.features[0].properties.State
+        var plantname = e.features[0].properties.Plant_Name
+        var zip = e.features[0].properties.Zip
+        var totalcapacity = e.features[0].properties.Total_MW
+        var primarysource = e.features[0].properties.PrimSource
+        var sourcedesc = e.features[0].properties.source_des
+        var utilityname = e.features[0].properties.Utility_Na
+
+        // Function to get the RGB color based on the plant type
+        function getTypeColor(primarysource) {
+            // Add your logic here to determine the color based on the plant type
+            // For demonstration purposes, let's assume you have predefined colors for each type
+            var typeColors = {
+                'solar': { r: 255, g: 87, b: 87 }, 
+                'pumpedstorage': { r: 245, g: 185, b: 20 },   
+                'naturalgas': { r: 20 , g: 220 , b: 255 },
+                'nuclear': { r: 231, g: 24, b: 145 },
+                'geothermal': { r: 254, g: 151, b: 16 },
+                'wind': { r: 189, g: 254, b: 244 },
+                'batteries': { r: 168, g: 168, b: 168 },
+                'hydroelectric': { r: 66, g: 132, b: 255 },
+                'petroleum': { r: 205, g: 125, b: 45 },
+                'other': { r: 242, g: 105, b: 155 },
+                'coal': { r: 91, g: 87, b: 87 },
+                'biomass': { r: 150, g: 223, b: 151 }    
+                // Add more types and colors as needed
+            }; 
+
+            // Retrieve the RGB color from the predefined colors based on the plant type
+            var color = typeColors[primarysource.toLowerCase()]; // Convert to lowercase for case-insensitive matching
+
+            // Return the RGB color string
+            if (color) {
+                return "rgb(" + color.r + ", " + color.g + ", " + color.b + ")";
+            } else {
+                return "black"; // Default to black if color is not found
+            }
+        }
+
+        var popupText = "<span style='color: " + getTypeColor(primarysource) + "; font-weight: bold; font-size: larger;'>" + plantname + "</span><br>" +
+                "<b>Address:</b> " + address + ", " + city + ", " + state + "  " + zip + '<br>' +
+                "<b>Utility Name:</b> " + utilityname + '<br>' +
+                "<b>Total Capacity:</b> " + totalcapacity + "MW" + '<br>' +
+                "<b>Primary Source:</b> " + primarysource + '<br>' +
+                "<b>Source Desc:</b> " + sourcedesc;
+
+
+        while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+        }
+        
+        new mapboxgl.Popup()
+            .setLngLat(coordinates)
+            .setHTML(popupText)
+            .addTo(map);
+    });
+
+    //the lines below are built in to style the pointer, 
+    // change the layer name prison_boundaries to match the layer name in your style
+    // Change the cursor to a pointer when the mouse is over the places layer.
+    map.on('mouseenter', 'uspowerplants', () => {
+        map.getCanvas().style.cursor = 'pointer';
+    });
+
+    // Change it back to a pointer when it leaves.
+    map.on('mouseleave', 'uspowerplants', () => {
+        map.getCanvas().style.cursor = '';
+    });
+
+console.log(map.getStyle().layers)
+
+});
+
+
+// Define the power plant layers in your Mapbox style
+var powerPlantLayers = ['solar', 'pumped-storage','wind', 'hydroelectric', 'nuclear', 'geothermal', 'biomass', 'coal', 'natural-gas', 'petroleum', 'other', 'batteries']; 
+
+var visibleLayersDictionary = {}
+for(var l in powerPlantLayers){
+    visibleLayersDictionary[powerPlantLayers[l].toLowerCase().replace(/\s/g, '_')]="none"
+}
+
+// Add event listeners to switch interface elements
+document.querySelectorAll('.toggle-input').forEach(function(input) {
+
+    input.addEventListener('change', function() {
+        var selectedType = this.value.toLowerCase().replace(/\s/g, '_'); // Get the value of the selected switch option
+        togglePowerPlantLayers(selectedType); // Toggle visibility based on the selected type
+       // console.log("type",selectedType)
+    });
+});
+
+
+// Function to toggle the visibility of a power plant layer
+function togglePowerPlantLayers(selectedType) {
+    console.log("Toggling layers for: ", selectedType); // See what 'selectedType' is being processed
+
+    selectedType = selectedType.replace(/\s+/g, '_').toLowerCase(); // Normalize the string
+    console.log("Normalized type for toggling:", selectedType);
+    // Toggle visibility state
+    if (visibleLayersDictionary[selectedType] == "none") {
+        visibleLayersDictionary[selectedType] = "visible";
+    } else {
+        visibleLayersDictionary[selectedType] = "none";
+    }
+    console.log("Updated visibility for " + selectedType + ": ", visibleLayersDictionary[selectedType]);
+
+    // List all the visible layers to be filtered
+    var visible = [];
+    for (var v in visibleLayersDictionary) {
+        if (visibleLayersDictionary[v] == 'visible') {
+            visible.push(v);
+        }
+    }
+    console.log("Visible layers: ", visible); // Check which layers are set to be visible
+
+    // Set the filter to show only visible ones
+    map.setFilter('uspowerplants', ['in', 'PrimSource'].concat(visible));
+    console.log("Filter set to: ", ['in', 'PrimSource'].concat(visible));
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    const typeColors = {
+        solar: '#ff5757',
+        wind: '#bdfef4',
+        nuclear: '#e71891',
+        geothermal: '#fe9710',
+        hydroelectric: '#4284ff',
+        coal: '#5b5757',
+        naturalgas: '#5b5757',
+        petroleum: '#cd7d2d',
+        other: '#f2699b',
+        pumpedstorage: '#f5b914',
+        biomass: "#96df97",
+    };
+
+    // Apply colors to toggle labels based on type
+    document.querySelectorAll('.toggle-input').forEach(toggle => {
+        const type = toggle.value.replace(/\s+/g, '').toLowerCase(); // Normalize the string as used in typeColors keys
+        const label = document.querySelector(`label[for="${toggle.id}"]`);
+        if (typeColors[type]) {
+            label.style.backgroundColor = typeColors[type];
+            label.style.color = '#ffffff';
+        }
+    });
+});
+
+
+
+
+</script>
+</body>
+</html>
+
+
